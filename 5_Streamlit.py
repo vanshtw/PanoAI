@@ -1,3 +1,23 @@
+import subprocess
+import sys
+ 
+def upgrade_pip():
+    subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--upgrade', 'pip'])
+ 
+upgrade_pip()
+
+def import_or_install(package):
+    try:
+        __import__(package)
+    except ImportError:
+        pip.main(['install', package])
+
+import_or_install ("openai")
+
+
+
+
+
 from openai import AzureOpenAI  
 import pandas as pd
 import os
