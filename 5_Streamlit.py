@@ -1,14 +1,6 @@
-
-
-
-
-
-
-from openai import AzureOpenAI  
-import pandas as pd
+from openai import AzureOpenAI 
 import os
-
-
+import streamlit as st
 
 client = AzureOpenAI(  
     azure_endpoint="https://rg-pmgdev-pano-oa1.openai.azure.com/",  
@@ -16,37 +8,37 @@ client = AzureOpenAI(
     api_version = "2024-05-01-preview" 
 )  
 
-conversation = [{"role": "system", "content": "You are helpful bot"}]
+# Streamlit UI
+st.set_page_config(page_title="Pano AI", page_icon="🤖")
+st.title("🤖 Pano AI via OpenAI")
 
+# Initialize chat history
+if "messages" not in st.session_state:
+    st.session_state.messages = [{"role": "system", "content": "You are a helpful chatbot."}]
 
-###########################################################################################################
+# Chat input box
+user_input = st.text_input("You:", "")
 
-def chat_with_gpt(prompt):
-    conversation.append({"role": "user", "content": prompt})
+if user_input:
+    st.session_state.messages.append({"role": "user", "content": user_input})
+
+    # Call OpenAI API
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=conversation
+        model="gpt-4o-mini", 
+        messages=st.session_state.messages
     )
-    reply = response.choices[0].message.content
-    conversation.append({"role": "assistant", "content": reply})
 
-    #print(reply)
+    bot_response = response.choices[0].message.content
+    st.session_state.messages.append({"role": "assistant", "content": bot_response})
 
-    return reply
+    # Display chat history
+    for message in st.session_state.messages[1:]:
+        role = "User" if message["role"] == "user" else "Bot"
+        st.write(f"**{role}:** {message['content']}")
+
+# Add a "Clear Chat" button
+if st.button("Clear Chat"):
+    st.session_state.messages = [{"role": "system", "content": "You are a helpful chatbot."}]
+    st.rerun()
 
 
-###########################################################################################################
-
-
-###########################################################################################################
-
-# Interactive chat loop
-while True:
-    user_input = input("You: ")
-    if user_input.lower() in ["exit", "quit", "okay", "done", "bye", "ok", "thanks", "thank you", "sure", "ok bye"]:
-        break
-   
-    response = chat_with_gpt(user_input)
-    print("Bot : ", response)
-
-###########################################################################################################
